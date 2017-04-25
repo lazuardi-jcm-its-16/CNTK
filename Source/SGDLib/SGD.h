@@ -356,6 +356,7 @@ public:
           m_saveBestModelPerCriterion(configSGD(L"saveBestModelPerCriterion", false)),
           m_trainCriterionNodeName((const wstring&) configSGD(L"trainCriterionNodeName", L"")),
           m_evalCriterionNodeName ((const wstring&) configSGD(L"evalCriterionNodeName", L"")),
+          m_contRunCheckEpochZeroCriterion (configSGD(L"contRunCheckEpochZeroCriterion", false)),
           m_traceNodeNamesReal    (configSGD(L"traceNodeNamesReal",     ConfigRecordType::Array(stringargvector()))),
           m_traceNodeNamesCategory(configSGD(L"traceNodeNamesCategory", ConfigRecordType::Array(stringargvector()))),
           m_traceNodeNamesSparse  (configSGD(L"traceNodeNamesSparse",   ConfigRecordType::Array(stringargvector()))),
@@ -594,6 +595,8 @@ protected:
     std::shared_ptr<struct DistGradHeader> m_gradHeader;
 
     shared_ptr<IMASGD<ElemType>> m_pMASGDHelper;
+
+    bool m_contRunCheckEpochZeroCriterion;
 
 private:
     void MarkDropoutNodesEvalTimeStampAsOutdated(const ComputationNetworkPtr& net, const ComputationNodeBasePtr& criterionNode);
