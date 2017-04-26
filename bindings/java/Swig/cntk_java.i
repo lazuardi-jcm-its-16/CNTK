@@ -287,6 +287,9 @@
 
 %ignore_class CNTK::ProgressWriter;
 
+%ignore_function CNTK::SetCheckedMode;
+%ignore_function CNTK::GetCheckedMode;
+
 %ignore_struct std::hash<::CNTK::DistributedWorkerDescriptor>;
 
 // Ignore things in CNTKLibraryInternals.h that are not exposed for C# Eval.
@@ -322,10 +325,6 @@
 %ignore_function CNTK::Internal::IsAutomaticUnpackingOfPackedValuesDisabled;
 %ignore_function CNTK::Internal::SetComputationNetworkTraceLevel;
 %ignore_function CNTK::Internal::GetComputationNetworkTraceLevel;
-%ignore_function CNTK::Internal::SetComputationNetworkTrackGapNans;
-%ignore_function CNTK::Internal::GetComputationNetworkTrackGapNans;
-%ignore_function CNTK::Internal::SetGPUMemoryAllocationTraceLevel;
-%ignore_function CNTK::Internal::ForceSynchronousCUDAKernelExecutions;
 %ignore_function CNTK::Internal::ForceDeterministicAlgorithms;
 %ignore_function CNTK::Internal::ShouldForceDeterministicAlgorithms;
 %ignore_function CNTK::Internal::EnableSynchronousGPUKernelExecution;
@@ -453,8 +452,6 @@
     }
 %}
 
-// Ignore exposing istream to C# for now. Todo: find a good solution to map C# System.IO.Stream to std::istream.
-%ignore CNTK::Function::LoadModel(std::istream& inputStream, const DeviceDescriptor& computeDevice= DeviceDescriptor::UseDefaultDevice());
 %ignore CNTK::Function::BlockArgumentsMapping;
 %rename (GetName) CNTK::Function::Name;
 %rename (GetUid) CNTK::Function::Uid;
@@ -470,7 +467,7 @@
 %rename (_IsPrimitive) CNTK::Function::IsPrimitive;
 %rename (_IsBlock) CNTK::Function::IsBlock;
 
-// Customize type mapping for modelBuffer, used by LoadModel
+// Customize type mapping for modelBuffer, used by Load
 // template taken from various.i
 %apply char* INPUT { char* modelBuffer }
 %typemap(jni) (char* modelBuffer) "jbyteArray"
@@ -491,9 +488,9 @@
 
 %typemap(javacode) CNTK::Function %{
 
-    /*public static Function LoadModel(byte[] modelBuffer, DeviceDescriptor computeDevice)
+    /*public static Function Load(byte[] modelBuffer, DeviceDescriptor computeDevice)
     {
-        return LoadModel(modelBuffer, (uint)modelBuffer.Length, computeDevice);
+        return Load(modelBuffer, (uint)modelBuffer.Length, computeDevice);
     }*/
 
 
@@ -1474,6 +1471,25 @@
         return inputVector;
     }*/
 %}
+
+%ignore CNTK::Function::Load(const std::wstring& filepath, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice(), const Internal::UDFDeserializerPtr& deserializer);
+%ignore CNTK::Function::Load(const char* buffer, size_t length, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice(), const Internal::UDFDeserializerPtr& deserializer = nullptr);
+// Ignore exposing istream to C# for now. Todo: find a good solution to map C# System.IO.Stream to std::istream.
+%ignore CNTK::Function::Load(std::istream& inputStream, const DeviceDescriptor& computeDevice= DeviceDescriptor::UseDefaultDevice(), const Internal::UDFDeserializerPtr& deserializer = nullptr);
+
+%extend CNTK::Function {
+    static FunctionPtr Load(const std::wstring& filepath, 
+                            const CNTK::DeviceDescriptor& computeDevice = CNTK::DeviceDescriptor::UseDefaultDevice()) 
+    {
+        return CNTK::Function::Load(filepath, computeDevice, nullptr);
+    }
+
+    static FunctionPtr Load(const char* modelBuffer, size_t length,
+                            const CNTK::DeviceDescriptor& computeDevice = CNTK::DeviceDescriptor::UseDefaultDevice()) 
+    {
+        return CNTK::Function::Load(modelBuffer, length, computeDevice, nullptr);
+    }
+}
 
 %include "CNTKLibraryInternals.h"
 %include "CNTKLibrary.h"
